@@ -1,5 +1,79 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#122c45"><title>CPR Gestion • Chantiers, devis et factures</title><link rel="icon" type="image/png" href="assets/logo-cpr.png"><link rel="stylesheet" href="styles.css"></head><body>
-<div class="shell"><aside class="sidebar"><div class="brand"><img src="assets/logo-cpr.png" alt="Logo CPR"><div><b>CPR</b><small>GESTION</small></div></div><nav id="menu"><button data-page="dashboard" class="active">◫ &nbsp; Tableau de bord</button><button data-page="chantiers">▤ &nbsp; Chantiers</button><button data-page="clients">♙ &nbsp; Clients</button><button data-page="devis">▣ &nbsp; Devis</button><button data-page="factures">▧ &nbsp; Factures</button><button data-page="settings">⚙ &nbsp; Paramètres</button></nav><div class="sidefoot">CPR SASU<br><span>Peinture · Ravalement · Maçonnerie<br>Électricité · Plomberie · Isolation</span></div></aside>
-<main><header class="top"><div><div class="eyebrow">ESPACE DE GESTION</div><h1 id="pageTitle">Tableau de bord</h1></div><div class="top-actions"><span class="pill">● Enregistrement sur cet appareil</span><button class="btn gold" id="topCreate">+ Nouveau devis</button></div></header><section id="content"></section></main></div>
-<div id="modal" class="modal" hidden><div class="modal-content"><div class="modal-head"><h2 id="modalTitle"></h2><button id="modalClose" class="icon">✕</button></div><div id="modalBody"></div></div></div><div id="toast" role="status"></div>
-<script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#122c45">
+  <title>CPR Gestion • Administration sécurisée</title>
+  <link rel="icon" type="image/png" href="assets/logo-cpr.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <section id="authScreen" class="auth-screen" aria-label="Connexion administrateur">
+    <div class="auth-card">
+      <img class="auth-logo" src="assets/logo-cpr.png" alt="Logo de CPR">
+      <div class="auth-heading"><h1>CPR <span>Gestion</span></h1><p>Espace administrateur sécurisé</p></div>
+      <p id="authMessage" class="auth-message" role="status" aria-live="polite"></p>
+      <form id="loginForm" class="auth-form">
+        <h2>Connexion administrateur</h2>
+        <label for="loginEmail">Adresse e-mail</label>
+        <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="administrateur@exemple.fr" required>
+        <label for="loginPassword">Mot de passe</label>
+        <input id="loginPassword" name="password" type="password" autocomplete="current-password" minlength="6" required>
+        <button class="btn gold auth-main" type="submit">Se connecter</button>
+        <button type="button" class="auth-link" id="forgotLink">Mot de passe oublié ?</button>
+      </form>
+      <form id="forgotForm" class="auth-form" hidden>
+        <h2>Réinitialiser le mot de passe</h2>
+        <p>Saisissez l'e-mail de votre compte administrateur. Vous recevrez un lien de réinitialisation si le compte existe.</p>
+        <label for="forgotEmail">Adresse e-mail</label>
+        <input id="forgotEmail" name="email" type="email" autocomplete="email" required>
+        <button class="btn gold auth-main" type="submit">Envoyer le lien</button>
+        <button type="button" class="auth-link auth-back">← Revenir à la connexion</button>
+      </form>
+      <form id="newPasswordForm" class="auth-form" hidden>
+        <h2>Choisir un nouveau mot de passe</h2>
+        <label for="newPassword">Nouveau mot de passe (12 caractères minimum)</label>
+        <input id="newPassword" name="password" type="password" autocomplete="new-password" minlength="12" required>
+        <label for="confirmPassword">Confirmer le mot de passe</label>
+        <input id="confirmPassword" name="confirm" type="password" autocomplete="new-password" minlength="12" required>
+        <button class="btn gold auth-main" type="submit">Enregistrer mon nouveau mot de passe</button>
+      </form>
+      <div class="auth-foot">CPR SASU · Plateforme privée de gestion</div>
+    </div>
+  </section>
+
+  <div class="shell" id="appShell" hidden>
+    <aside class="sidebar">
+      <div class="brand"><img src="assets/logo-cpr.png" alt="Logo CPR"><div><b>CPR</b><small>GESTION</small></div></div>
+      <nav id="menu" aria-label="Navigation principale">
+        <button data-page="dashboard" class="active">◫ &nbsp; Tableau de bord</button>
+        <button data-page="chantiers">▤ &nbsp; Chantiers</button>
+        <button data-page="clients">♙ &nbsp; Clients</button>
+        <button data-page="devis">▣ &nbsp; Devis</button>
+        <button data-page="factures">▧ &nbsp; Factures</button>
+        <button data-page="settings">⚙ &nbsp; Paramètres</button>
+      </nav>
+      <div class="sidefoot">CPR SASU<br><span>Peinture · Ravalement · Maçonnerie<br>Électricité · Plomberie · Isolation</span></div>
+    </aside>
+    <main>
+      <header class="top">
+        <div><div class="eyebrow">ESPACE ADMINISTRATEUR</div><h1 id="pageTitle">Tableau de bord</h1><span class="signed-in" id="adminEmail"></span></div>
+        <div class="top-actions">
+          <span class="pill" id="syncStatus" role="status" aria-live="polite">Connexion à Supabase…</span>
+          <button class="btn" id="refreshBtn" title="Récupérer les dernières données du serveur">↻ Actualiser</button>
+          <button class="btn gold" id="topCreate">+ Nouveau devis</button>
+          <button class="btn" id="logoutBtn">Déconnexion</button>
+        </div>
+      </header>
+      <section id="content"></section>
+    </main>
+  </div>
+  <div id="modal" class="modal" hidden><div class="modal-content"><div class="modal-head"><h2 id="modalTitle"></h2><button id="modalClose" class="icon" type="button" aria-label="Fermer">✕</button></div><div id="modalBody"></div></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
