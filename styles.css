@@ -28,3 +28,6 @@
 .pill.wait{background:#fff6e1;color:#906b20}
 .top-actions{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:680px){.auth-card{padding:22px 19px}.top{flex-wrap:wrap}.top-actions{width:100%;justify-content:flex-start;gap:7px}.top-actions .pill{display:inline-block}.top-actions .btn{padding:7px 9px}}
+
+/* CPR mobile Android : actions cliquables et zones de sécurité */
+@media(max-width:680px){.top{flex-wrap:wrap;gap:12px}.top-actions{width:100%;flex-wrap:wrap;gap:7px}.top-actions .btn{min-height:41px;padding:9px 12px}.auth-screen{min-height:100svh;padding-top:max(18px,env(safe-area-inset-top));padding-bottom:max(18px,env(safe-area-inset-bottom))}.auth-card{padding:20px 19px}.modal{padding-bottom:max(12px,env(safe-area-inset-bottom))}.page-row{flex-wrap:wrap}.page-row .btn{min-height:41px}.actions .btn{min-height:41px}}

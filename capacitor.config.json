@@ -1,0 +1,11 @@
+{
+  "appId": "fr.cpr.gestion",
+  "appName": "CPR Gestion",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

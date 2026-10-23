@@ -1,5 +1,9 @@
-// CPR Gestion — renseigner UNIQUEMENT les identifiants publics de votre projet Supabase.
-// Ces informations sont visibles dans un site publié : c'est normal pour URL + clé publishable/anon.
-// Ne mettez JAMAIS ici la clé service_role, une clé secrète ou votre mot de passe.
+// CPR Gestion • configuration publique Supabase.
+// URL du projet fournie ; COPIEZ votre clé publique actuelle depuis le config.js de GitHub.
+// Attention : le fichier remplace celui du dépôt s’il est uploadé tel quel.
+// Ne jamais inscrire de service_role, de secret ou de mot de passe.
 window.CPR_SUPABASE_URL = 'https://xeopsjsbdhbcveqvlomb.supabase.co';
-window.CPR_SUPABASE_ANON_KEY = 'sb_publishable_8rZ3FigdBE3FvhoWxsC9GA_73nj1mF1';
+window.CPR_SUPABASE_ANON_KEY = 'VOTRE_CLE_PUBLISHABLE_OU_ANON';
+// Adresse HTTPS où le site CPR est publié, pour les liens de réinitialisation
+// reçus depuis les applications Windows / Android. Exemple : https://votre-app.netlify.app/
+window.CPR_PASSWORD_RESET_URL = '';

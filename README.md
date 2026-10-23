@@ -1,86 +1,104 @@
-# CPR Gestion — version Supabase sécurisée
+# CPR GESTION — Application Windows + Android + version installable sur navigateur
 
-Application web de gestion **CPR SASU** : clients, chantiers, devis et factures. Logo CPR conservé ; thème bleu marine, or, blanc. Design responsive ordinateur / téléphone.
+**Projet de CPR SASU** : chantiers, clients, devis, factures. Le **logo officiel CPR (blason)** est utilisé pour la fenêtre Windows, l'icône Android, le raccourci mobile, la connexion administrateur et les documents imprimés. Couleurs conservées : bleu marine, doré et blanc.
 
-## Évolutions de cette version
+Cette version reprend les sources de **CPR Gestion Admin + Supabase** : les données restent sur votre projet Supabase existant, sous contrôle de la table `cpr_admins` et des règles RLS. Les fonctionnalités de modification des **chantiers, devis et factures** ont été conservées.
 
-- Connexion à un **espace administrateur** avec **adresse e-mail + mot de passe** via Supabase Auth.
-- **Mot de passe oublié** : envoi d'un lien de récupération, puis formulaire de saisie du nouveau mot de passe.
-- Contrôle des autorisations côté Supabase : seuls les comptes inscrits dans `cpr_admins` peuvent lire / modifier les données (RLS activé).
-- Données partagées entre ordinateurs et téléphones dans `cpr_store`, en ligne et non dans le stockage local du navigateur.
-- Bouton **Déconnexion** et bouton **Actualiser** pour récupérer les modifications venant d'un autre appareil.
-- Modification **après création** : fiches chantiers (adresse, client, dates, notes, statut), devis (prestations, quantités, prix, TVA, client, chantier, statut) et factures (mêmes champs, dates d'échéance, paiement). Bouton **Modifier** dans chaque tableau.
-- Conversion devis → brouillon de facture, logo CPR sur les documents imprimés, IBAN et pied de page configurables.
-- Sauvegarde JSON exportable ; import possible de sauvegardes de l'ancienne version locale.
+## ✅ AVANT TOUTE MISE À JOUR SUR GITHUB
 
-## Configuration Supabase (OBLIGATOIRE avant utilisation)
+**IMPORTANT — Garder votre clé publique déjà configurée !** Le fichier `config.js` dans ce ZIP indique l'URL correcte, mais contient intentionnellement une **clé publique de démonstration**. Pour ne pas casser l'application actuelle :
 
-### 1. Créer votre projet
+1. Ouvrir sur GitHub votre fichier `config.js` **actuel**. Le copier dans un fichier sûr / garder ses deux valeurs.
+2. Après extraction de cette mise à jour, dans son `config.js`, recopier la valeur de `window.CPR_SUPABASE_ANON_KEY` depuis l'ancien fichier (la clé `sb_publishable_...` ou `anon`). L'URL `https://xeopsjsbdhbcveqvlomb.supabase.co` est déjà inscrite.
+3. **Ne jamais** mettre le mot de passe admin, ni une clé `service_role` ou `secret` dans ce dépôt.
+4. Régler si possible `window.CPR_PASSWORD_RESET_URL` à **l'URL HTTPS de l'application web déjà publiée** (par exemple `https://votre-site.netlify.app/`). Cette option rend **« Mot de passe oublié » fonctionnel depuis Windows et Android**. Dans Supabase → Authentication → URL Configuration, ajouter **exactement** cette adresse aux Redirect URLs.
 
-1. Créer un projet sur Supabase.
-2. Aller dans **SQL Editor**, ouvrir `supabase/setup.sql` (inclus dans ce ZIP), copier tout son contenu puis cliquer **Run**.
-3. Aller dans **Authentication > Providers** : activer **Email** et, pour un accès admin uniquement, **désactiver l'inscription publique / Allow new users to sign up**. L'application n'a pas de formulaire d'inscription publique.
-4. Aller dans **Authentication > Users**, cliquer **Add user** pour créer le compte administrateur avec son e-mail et son mot de passe. Choisir la confirmation de l'e-mail selon votre configuration. Ne pas mettre de mots de passe dans GitHub.
-5. Retourner dans **SQL Editor** et exécuter, en remplaçant l'e-mail entre quotes par celui de l'admin :
+**Ne relancez PAS `supabase/setup.sql` pour cette mise à jour** : le projet déjà installé et votre compte administrateur continuent d'être utilisés. Le script SQL est fourni seulement pour une installation totalement neuve.
 
-   ```sql
-   INSERT INTO public.cpr_admins (user_id)
-   SELECT id FROM auth.users WHERE email = 'VOTRE_EMAIL_ADMIN@EXEMPLE.FR'
-   ON CONFLICT (user_id) DO NOTHING;
-   ```
+## 💻 CRÉER L'APPLICATION WINDOWS (.exe) ET ANDROID (.apk) DEPUIS GITHUB — sans Android Studio
 
-6. Vérifier que l'administrateur est présent dans **Table Editor > cpr_admins**. Tout utilisateur non présent sera refusé, même avec un mot de passe valide.
+### 1. Envoyer le projet sur GitHub
 
-### 2. Renseigner la connexion dans `config.js`
+- Décompresser ce ZIP.
+- Ouvrir **le contenu** du dossier `CPR-Gestion` (fichiers `package.json`, `index.html`, `.github/...`, etc.).
+- Sur le dépôt GitHub **cpr-gestion** existant, uploader les fichiers/dossiers **à la racine**. Important : inclure le dossier caché **`.github`**. `package.json` doit être directement à la racine, pas dans `CPR-Gestion/CPR-Gestion`.
+- Au besoin, commencer par une copie sauvegardée du dépôt existant. Vérifier que votre `config.js` reste configuré avec la **clé publique** déjà fonctionnelle.
 
-Dans **Project Settings / Connect / API Keys** selon l'interface Supabase, copier :
+### 2. Lancer les deux compilations
 
-- URL du projet (format `https://votre-projet.supabase.co`).
-- **Clé publique `publishable` (ou `anon`) UNIQUEMENT** — ces deux valeurs peuvent figurer dans le frontend grâce aux règles RLS.
+1. Dans GitHub, ouvrir l'onglet **Actions**.
+2. À gauche, choisir **« CPR Gestion - créer Windows et Android »**.
+3. Cliquer sur **Run workflow**, choisir la branche principale, puis à nouveau **Run workflow**.
+4. Attendre que les jobs **Windows - installateur EXE** et **Android - APK test** passent au vert.
+5. Ouvrir le lancement terminé, descendre à **Artifacts** et télécharger :
+   - **`CPR-Gestion-Windows-EXE`** : contient l'installateur `.exe` pour Windows 64 bits.
+   - **`CPR-Gestion-Android-APK`** : contient un fichier `app-debug.apk` installable sur Android.
+6. Sur Windows : exécuter l'installateur `.exe`. Sur Android : transférer le fichier `.apk` sur le téléphone puis l'ouvrir pour installer. Android peut demander l'autorisation d'installer une application provenant de cette source.
 
-Modifier les deux valeurs dans `config.js` :
+L'**APK debug est un APK de test**, signé automatiquement avec une clé de développement, **pas une publication Google Play**. Pour une distribution pérenne, générer et conserver une clé de signature de production. L'**EXE n'est pas signé** : SmartScreen peut afficher « Éditeur inconnu ». Les certificats de signature Windows seront à configurer avant une diffusion commerciale.
 
-```js
-window.CPR_SUPABASE_URL = 'https://votre-projet.supabase.co';
-window.CPR_SUPABASE_ANON_KEY = 'votre_cle_publique';
+### 3. Tester les fonctions sur les deux appareils
+
+- Se connecter avec **l'adresse e-mail et le mot de passe Supabase existants**.
+- Ouvrir un chantier, cliquer **Modifier**, enregistrer ; contrôler la modification sur un autre appareil après **Actualiser**.
+- Faire de même avec **devis, factures et clients**.
+- Pour exporter un devis en PDF sous Windows : ouvrir le document → **Imprimer / PDF** → choisir « Microsoft Print to PDF » ou « Enregistrer en PDF ».
+- Sur Android : ouvrir le document → **Imprimer / PDF** → dans l'interface Android, sélectionner **« Enregistrer au format PDF »**. Cette version ajoute un **pont natif Android d'impression**.
+- Tester **Mot de passe oublié**, après avoir rempli `CPR_PASSWORD_RESET_URL`, et vérifier que le lien ouvre l'application web publiée via HTTPS.
+
+## 📱 Autre méthode très simple : installer la version PWA, sans .apk ni .exe
+
+Pour installer l'application directement sur **Windows ou Android** :
+
+1. Publier le contenu de `www/` (voir la section ci-dessous) sur un hébergement **HTTPS** tel que Netlify ou GitHub Pages.
+2. Sur **Windows / Edge**, ouvrir l'URL → menu **… → Applications → Installer ce site en tant qu'application**.
+3. Sur **Android / Chrome**, ouvrir la même URL → menu **⋮ → Installer l'application / Ajouter à l'écran d'accueil**.
+
+La PWA a le logo CPR comme icône. C'est la **voie la plus rapide** si les binaires ne sont pas encore compilés. L'interface peut s'ouvrir depuis son icône même en l'absence temporaire de réseau ; la connexion Supabase et l'accès aux données nécessitent cependant Internet.
+
+## 🌐 Publier la PWA avec GitHub
+
+- Sur GitHub : `Settings → Pages`, sélectionner **GitHub Actions** comme source de déploiement.
+- Onglet `Actions` → **« CPR Gestion - publier version installable PWA »** → **Run workflow**.
+- GitHub affiche ensuite l'adresse HTTPS du site. Ajouter cette adresse aux **Redirect URLs** Supabase si elle sert pour la récupération de mot de passe.
+
+Pour Netlify : connecter le dépôt et définir `Build command` : `npm install && npm run build:web` ; `Publish directory` : `www`.
+
+## 🔧 Utilisateurs techniques — installation sur ordinateur
+
+Prérequis : Node.js 22+, npm ; pour Android natif, Android Studio + SDK et Java 21 si vous ne compilez pas dans GitHub Actions.
+
+```bash
+npm install
+npm run build:web
+npm run desktop            # ouvrir CPR sous Electron Windows/Linux/macOS (développement)
+npm run build:windows      # sur Windows : générer .exe dans release-windows/
+npm run android:add        # première fois : générer android/ + icône + bridge PDF
+npm run android:sync       # chaque mise à jour du code web
+# Android Studio : ouvrir android/ puis Build APK(s)
 ```
 
-⚠️ **Ne jamais mettre `service_role`, de clé `secret`, ni de mot de passe administrateur dans un fichier GitHub.** Le fichier SQL configure le vrai contrôle d'accès, côté base de données. Une simple page de connexion sans RLS ne serait pas une sécurité suffisante.
+La compilation ne doit jamais inclure votre **mot de passe** ou vos **clés Supabase secrètes**. Seuls l'URL et la clé **publishable/anon** sont destinées au client. Vos données sont protégées côté serveur par RLS.
 
-### 3. Déployer avec GitHub
+## ⚠️ Limites à connaître
 
-1. Créer un dépôt GitHub privé (par exemple `cpr-gestion`).
-2. Décompresser l'archive et envoyer les fichiers `index.html`, `styles.css`, `app.js`, `auth.js`, `config.js`, `assets/logo-cpr.png` et `supabase/setup.sql` au dépôt.
-3. Publier le dépôt via Netlify (**build command : vide ; publish directory : `.`**), ou GitHub Pages (Settings > Pages > Deploy from a branch). HTTPS requis en production.
-4. Dans Supabase **Authentication > URL Configuration**, renseigner la **Site URL** exacte de l'application publiée (`https://.../`), et la même URL dans **Redirect URLs**. C'est indispensable au « Mot de passe oublié ».
-5. Ouvrir le site publié, entrer l'e-mail et le mot de passe du compte admin, puis compléter les paramètres entreprise (IBAN, BIC, coordonnées, etc.).
+- **Aucun EXE ou APK n'est pré-compilé dans cette archive source.** Les fichiers d'installation seront générés par la procédure GitHub Actions indiquée ci-dessus. Les workflows nécessitent l'accès aux dépendances npm, aux composants Android et aux exécutables Electron.
+- Les deux applications utilisent la **même base Supabase**, donc vos chantiers et devis sont communs. La connexion réseau reste nécessaire. Le service worker **ne met pas en cache les données clients ou les informations de facturation**.
+- Les données sont enregistrées dans un seul document JSON Supabase avec détection de conflit : des modifications simultanées depuis plusieurs appareils doivent être évitées, et utiliser le bouton **Actualiser** entre utilisateurs.
+- Les devis et factures se modifient via l'interface, mais **une facture déjà émise ne devrait pas être réécrite sans procédure légale de correction / avoir**. Cet outil n'est pas certifié conforme aux exigences comptables / facturation électronique.
+- Vous pouvez utiliser votre projet Supabase actuel : **aucun nouveau projet ou nouvel utilisateur ne doit être créé**.
 
-**Ne pas ouvrir `index.html` en `file://` pour tester le mot de passe oublié** : utiliser l'adresse HTTPS du site (ou un serveur de développement local ajouté aux URLs autorisées).
+### Structure des fichiers
 
-### 4. Tester avant utilisation
+- `index.html`, `app.js`, `auth.js`, `styles.css` : interface CPR Gestion existante (fonctionnalités préservées).
+- `config.js` : connexion au **même** Supabase ; mot de passe oublié via HTTPS.
+- `assets/` : logo original, icônes Windows / Android / PWA.
+- `scripts/build-web.mjs` : bundle des bibliothèques nécessaires, sans dépendre d'une URL CDN Supabase à chaque chargement.
+- `electron/main.cjs` : application Windows Electron, sandbox et intégration du navigateur pour l'impression PDF.
+- `capacitor.config.json`, `native/android`, `scripts/prepare-android.mjs` : application Android, icône, système d'impression/PDF natif.
+- `.github/workflows/` : deux compilations automatiques Windows et Android + publication PWA.
+- `supabase/setup.sql` : **conservé à titre de référence**, à ne pas rejouer.
 
-- Compte admin reconnu : la gestion s'affiche et les données se sauvegardent sur Supabase.
-- Sans connexion : impossible de consulter les tables ; l'application reste sur l'écran de connexion.
-- Compte non administrateur : connexion refusée à l'administration et données inaccessibles grâce aux politiques RLS.
-- Mot de passe oublié : mail reçu ; clic sur le lien ; formulaire de nouveau mot de passe ; reconnexion.
-- Modifier un chantier, devis, facture ; enregistrer, recharger le navigateur, rouvrir l'élément et vérifier sa persistance.
-- Ouvrir le site sur un autre appareil ; cliquer sur **Actualiser** pour voir les changements.
+### Références de technologie
 
-## Conservation de l'application existante
-
-Les données de la version locale précédente (si elle a déjà servi) ne sont **pas importées automatiquement** : connectez-vous, puis utilisez **Paramètres > Importer une sauvegarde** avec le JSON exporté depuis l'ancienne version. Cela remplace les données Supabase (confirmation demandée).
-
-## Gestion des conflits et sauvegarde
-
-Cette version conserve les données métier dans **un document JSON partagé**, dans la table `cpr_store`. Les écritures sont ordonnées dans le navigateur et protégées par un numéro de révision : si un autre appareil a modifié les données, la nouvelle écriture est **refusée plutôt que d'écraser silencieusement** les changements. Dans ce cas, exportez immédiatement le JSON depuis Paramètres, puis utilisez « Actualiser » pour récupérer les dernières données cloud. **Pas de fusion automatique** de modifications simultanées. Pour une utilisation intensive multi-admin, prévoir des tables métier séparées et un historique des modifications.
-
-## Limites réglementaires importantes
-
-- Les factures sont **modifiables dans l'interface**, comme demandé. Cependant une facture déjà émise ne devrait pas être réécrite librement pour corriger une transaction : les corrections nécessitent en pratique une procédure appropriée (avoir, documents traçables, numérotation conforme). Le prototype **n'assure pas** une piste d'audit / inaltérabilité ou un journal complet des versions.
-- Le numéro de facture proposé n'est pas un générateur transactionnel garanti (conflits évités au niveau du stockage, mais pas gestion comptable). La solution ne remplace pas un logiciel de facturation conforme ou un outil de facturation électronique réglementaire.
-- Faire vérifier les mentions légales et fiscales, la TVA, les données clients, la protection RGPD, l'archivage et les obligations de facturation avant exploitation réelle.
-- Le PDF est obtenu par **Imprimer / Enregistrer au format PDF** dans le navigateur. Il n'est pas envoyé par e-mail automatiquement.
-- Configurez SMTP personnalisé dans Supabase pour un envoi de mails fiable en production ; le service de mail par défaut est limité.
-- Les données stockées dans Supabase doivent être sauvegardées par une stratégie indépendante, même si vous disposez d'un export JSON manuel.
-
-L'entreprise et son logo proviennent des documents fournis : CPR SASU, 9 Rue Alfred Ottino, 93400 Saint-Ouen-sur-Seine, 945 083 186 RCS Bobigny, capital 1 500 €. Vérifiez les données sur un extrait Kbis actualisé avant émission de documents.
+Capacitor : https://capacitorjs.com/docs/getting-started  |  Electron Builder : https://www.electron.build/v26/docs/win/  |  Android impression : https://developer.android.com/training/printing/html-docs  |  Supabase Auth : https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail

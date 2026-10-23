@@ -213,7 +213,17 @@
       if (!client) return message('Supabase n’est pas configuré.','error');
       const form = e.currentTarget;
       disableWhileSubmitting(form,true);
-      const url = new URL(window.location.href);
+      // Un lien de retour file:// ou capacitor:// ne fonctionne pas dans les e-mails
+      // de Supabase. Windows et Android utilisent l’adresse HTTPS de l’app web.
+      const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+      const isPackaged = isNative || location.protocol === 'file:';
+      const publishedURL = String(window.CPR_PASSWORD_RESET_URL || '').trim();
+      if (isPackaged && !/^https:\/\/[^\s/]+/i.test(publishedURL)) {
+        message('Définissez CPR_PASSWORD_RESET_URL dans config.js avec l’adresse HTTPS de votre site publié pour recevoir un lien valide.','error');
+        disableWhileSubmitting(form,false);
+        return;
+      }
+      const url = new URL(isPackaged ? publishedURL : window.location.href);
       url.hash = '';
       url.search = '';
       try {

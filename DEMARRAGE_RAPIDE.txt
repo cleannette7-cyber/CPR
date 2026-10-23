@@ -1,0 +1,28 @@
+CPR GESTION — WINDOWS ET ANDROID
+================================
+
+1. IMPORTANT : conserver votre CONFIG.JS ACTUEL de GitHub !
+   Cette archive contient une URL Supabase valide mais une CLÉ PUBLIQUE
+   À REPLACER par la clé que vous avez déjà mise dans votre ancien config.js.
+   Ne jamais mettre de mot de passe ni de clé service_role dans les fichiers.
+
+2. Extraire le ZIP puis transférer LE CONTENU du dossier CPR-Gestion
+   à la RACINE de votre dépôt GitHub (inclus dossier caché .github).
+
+3. Dans GitHub cliquer : Actions >
+   CPR Gestion - créer Windows et Android > Run workflow.
+
+4. Une fois les deux jobs terminés : ouvrir le résultat du workflow,
+   puis aller tout en bas dans « Artifacts » :
+   - CPR-Gestion-Windows-EXE -> installateur Windows .exe
+   - CPR-Gestion-Android-APK -> APK Android de test.
+
+5. Installer les fichiers et se connecter avec VOTRE COMPTE ADMIN
+   SUPABASE EXISTANT. Il n'est pas nécessaire de recréer la base SQL.
+
+6. Pour le lien « Mot de passe oublié » depuis EXE/APK : indiquer
+   votre URL HTTPS de site CPR publié dans CPR_PASSWORD_RESET_URL
+   (config.js), puis autoriser cette URL dans Supabase > Auth > URL Configuration.
+
+Version TEST pour les binaires : EXE non signé, APK debug (pas Play Store).
+Pour instructions détaillées : consulter README.md.
