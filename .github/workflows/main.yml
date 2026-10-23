@@ -1,0 +1,52 @@
+name: CPR Gestion - créer Windows et Android
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  windows:
+    name: Windows - installateur EXE
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installer dépendances
+        run: npm install --no-audit --no-fund
+      - name: Générer installateur Windows
+        run: npm run build:windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CPR-Gestion-Windows-EXE
+          path: release-windows/*.exe
+          if-no-files-found: error
+  android:
+    name: Android - APK test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Installer dépendances
+        run: npm install --no-audit --no-fund
+      - name: Générer projet Android CPR
+        run: npm run android:add
+      - name: Compiler APK Android
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CPR-Gestion-Android-APK
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
