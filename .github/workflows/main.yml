@@ -1,10 +1,20 @@
 name: CPR Gestion - créer Windows et Android
+
 on:
   workflow_dispatch:
   push:
     tags: ['v*']
+
 permissions:
   contents: read
+
+# Identifiants publics chargés AU MOMENT de la compilation.
+# Configurer le secret de dépôt CPR_SUPABASE_PUBLISHABLE_KEY avec la clé sb_publishable_...
+# Si config.js contient déjà une clé publique valide, elle est utilisée en secours.
+env:
+  CPR_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.CPR_SUPABASE_PUBLISHABLE_KEY }}
+  CPR_PASSWORD_RESET_URL: ${{ vars.CPR_PASSWORD_RESET_URL }}
+
 jobs:
   windows:
     name: Windows - installateur EXE
@@ -14,15 +24,58 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Insérer la configuration Supabase dans l'application Windows
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const source = fs.readFileSync('config.js', 'utf8');
+          const match = source.match(/window\.CPR_SUPABASE_ANON_KEY\s*=\s*(['"])(.*?)\1/);
+          const key = (process.env.CPR_SUPABASE_PUBLISHABLE_KEY || (match && match[2]) || '').trim();
+          let valid = /^sb_publishable_[A-Za-z0-9_-]{10,}$/.test(key);
+          if (!valid && /^eyJ[A-Za-z0-9_.-]{50,}$/.test(key)) {
+            try { valid = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString('utf8')).role === 'anon'; }
+            catch (_) { valid = false; }
+          }
+          if (!valid) {
+            console.error('Clé publique Supabase ABSENTE ou invalide. Ajoutez CPR_SUPABASE_PUBLISHABLE_KEY dans GitHub > Settings > Secrets and variables > Actions.');
+            process.exit(1);
+          }
+          const resetMatch = source.match(/window\.CPR_PASSWORD_RESET_URL\s*=\s*(['"])(.*?)\1/);
+          const resetUrl = (process.env.CPR_PASSWORD_RESET_URL || (resetMatch && resetMatch[2]) || '').trim();
+          if (resetUrl && !/^https:\/\//.test(resetUrl)) {
+            console.error('CPR_PASSWORD_RESET_URL doit être une URL HTTPS.'); process.exit(1);
+          }
+          const config = {
+            CPR_SUPABASE_URL: 'https://xeopsjsbdhbcveqvlomb.supabase.co',
+            CPR_SUPABASE_ANON_KEY: key,
+            CPR_PASSWORD_RESET_URL: resetUrl
+          };
+          fs.writeFileSync('config.js', Object.entries(config).map(([k,v]) => `window.${k} = ${JSON.stringify(v)};`).join('\n') + '\n');
+          console.log('Configuration Supabase CPR ajoutée au build Windows (clé non affichée).');
+          NODE
       - name: Installer dépendances
         run: npm install --no-audit --no-fund
-      - name: Générer installateur Windows
+      - name: Générer le véritable installateur Windows EXE
         run: npm run build:windows
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      - name: Empreinte SHA-256 et état de la signature Windows
+        shell: pwsh
+        run: |
+          Get-ChildItem release-windows -Filter *.exe | ForEach-Object {
+            Write-Host "EXE : $($_.Name)"
+            Get-FileHash $_.FullName -Algorithm SHA256 | Format-List
+            $signature = Get-AuthenticodeSignature $_.FullName
+            Write-Host "Signature Authenticode : $($signature.Status)"
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: CPR-Gestion-Windows-EXE
           path: release-windows/*.exe
           if-no-files-found: error
+
   android:
     name: Android - APK test
     runs-on: ubuntu-latest
@@ -36,6 +89,36 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v4
+      - name: Insérer la configuration Supabase dans l'application Android
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const source = fs.readFileSync('config.js', 'utf8');
+          const match = source.match(/window\.CPR_SUPABASE_ANON_KEY\s*=\s*(['"])(.*?)\1/);
+          const key = (process.env.CPR_SUPABASE_PUBLISHABLE_KEY || (match && match[2]) || '').trim();
+          let valid = /^sb_publishable_[A-Za-z0-9_-]{10,}$/.test(key);
+          if (!valid && /^eyJ[A-Za-z0-9_.-]{50,}$/.test(key)) {
+            try { valid = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString('utf8')).role === 'anon'; }
+            catch (_) { valid = false; }
+          }
+          if (!valid) {
+            console.error('Clé publique Supabase ABSENTE ou invalide. Ajoutez CPR_SUPABASE_PUBLISHABLE_KEY dans GitHub > Settings > Secrets and variables > Actions.');
+            process.exit(1);
+          }
+          const resetMatch = source.match(/window\.CPR_PASSWORD_RESET_URL\s*=\s*(['"])(.*?)\1/);
+          const resetUrl = (process.env.CPR_PASSWORD_RESET_URL || (resetMatch && resetMatch[2]) || '').trim();
+          if (resetUrl && !/^https:\/\//.test(resetUrl)) {
+            console.error('CPR_PASSWORD_RESET_URL doit être une URL HTTPS.'); process.exit(1);
+          }
+          const config = {
+            CPR_SUPABASE_URL: 'https://xeopsjsbdhbcveqvlomb.supabase.co',
+            CPR_SUPABASE_ANON_KEY: key,
+            CPR_PASSWORD_RESET_URL: resetUrl
+          };
+          fs.writeFileSync('config.js', Object.entries(config).map(([k,v]) => `window.${k} = ${JSON.stringify(v)};`).join('\n') + '\n');
+          console.log('Configuration Supabase CPR ajoutée au build Android (clé non affichée).');
+          NODE
       - name: Installer dépendances
         run: npm install --no-audit --no-fund
       - name: Générer projet Android CPR
