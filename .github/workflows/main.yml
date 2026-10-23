@@ -35,7 +35,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
       - name: Installer dépendances
         run: npm install --no-audit --no-fund
       - name: Générer projet Android CPR
